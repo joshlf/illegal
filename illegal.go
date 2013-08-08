@@ -9,6 +9,7 @@ var (
 	ErrNotFunc       = errors.New("Argument was not a function")
 	ErrNotSlice      = errors.New("Argument was not a slice")
 	ErrWrongFuncType = errors.New("Argument function did not have the correct signature")
+	ErrWrongZeroType = errors.New("Zero argument type did not match function return type")
 )
 
 // Pre-computed type literals
@@ -123,4 +124,42 @@ func Filter(slice, fn interface{}) (interface{}, error) {
 	}
 
 	return ret.Interface(), nil
+}
+
+func Foldr(slice, zero, fn interface{}) (interface{}, error) {
+	slc := reflect.ValueOf(slice)
+	if slc.Kind() != reflect.Slice {
+		return nil, ErrNotSlice
+	}
+
+	f := reflect.ValueOf(fn)
+	if f.Kind() != reflect.Func {
+		return nil, ErrNotFunc
+	}
+
+	z := reflect.ValueOf(zero)
+
+	slcType := slc.Type()
+	elemType := slcType.Elem()
+	fType := f.Type()
+
+	if fType.NumIn() != 2 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.In(1) != fType.Out(0) {
+		return nil, ErrWrongFuncType
+	}
+
+	// It's possible to have a valid function
+	// (that is, func(A, B)B) and have the type
+	// of zero not be equal to B
+	if fType.Out(0) != z.Type() {
+		return nil, ErrWrongZeroType
+	}
+
+	args := make([]reflect.Value, 2)
+	args[1] = z
+	for i := 0; i < slc.Len(); i++ {
+		args[0] = slc.Index(i)
+		args[1] = f.Call(args)[0]
+	}
+
+	return args[1].Interface(), nil
 }

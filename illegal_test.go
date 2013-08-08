@@ -1,7 +1,7 @@
 package illegal
 
 import (
-	// "fmt"
+	"fmt"
 	"reflect"
 	// "runtime"
 	"testing"
@@ -89,7 +89,7 @@ func testFuncEqual(f1, f2 interface{}, eq bool, err error, t *testing.T) {
 	}
 
 	if err1 != err {
-		t.Errorf("Expected error %v; got %v", err, err1)
+		t.Errorf("Expected error \"%v\"; got \"%v\"", err, err1)
 	}
 }
 
@@ -115,7 +115,7 @@ func testMap(slc1, slc2, f interface{}, err error, t *testing.T) {
 	}
 
 	if err1 != err {
-		t.Errorf("Expected error %v; got %v", err, err1)
+		t.Errorf("Expected error \"%v\"; got \"%v\"", err, err1)
 	}
 }
 
@@ -141,6 +141,34 @@ func testFilter(slc1, slc2, f interface{}, err error, t *testing.T) {
 	}
 
 	if err1 != err {
-		t.Errorf("Expected error %v; got %v", err, err1)
+		t.Errorf("Expected error \"%v\"; got \"%v\"", err, err1)
+	}
+}
+
+func TestFoldr(t *testing.T) {
+	// Foldr should succeed
+	testFoldr([]int{1, 2, 3}, 1, func(i, j int) int { return i + j }, 7, nil, t)
+	testFoldr([]int{1, 2, 3}, 6, func(i, j int) int { return j - i }, 0, nil, t)
+	testFoldr([]int{1, 2, 3}, "", func(i int, s string) string { return fmt.Sprintf("%d%s", i, s) }, "321", nil, t)
+	testFoldr([]int{}, "", func(i int, s string) string { return "foo" }, "", nil, t)
+
+	// Foldr should fail
+	testFoldr([]int{}, 0, 0, nil, ErrNotFunc, t)
+	testFoldr([]int{}, 0, func(i, j, k int) int { return 0 }, nil, ErrWrongFuncType, t)
+	testFoldr([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, ErrWrongFuncType, t)
+	testFoldr([]int{}, false, func(i, j int) bool { return false }, nil, ErrWrongFuncType, t)
+	testFoldr([]int{}, 0, func(i int, b bool) bool { return false }, nil, ErrWrongZeroType, t)
+	testFoldr([]int{}, 0, func(i, j int) bool { return false }, nil, ErrWrongFuncType, t)
+}
+
+func testFoldr(slc, z, f interface{}, res interface{}, err error, t *testing.T) {
+	res1, err1 := Foldr(slc, z, f)
+
+	if !reflect.DeepEqual(res, res1) {
+		t.Errorf("Expected result %v; got %v", res, res1)
+	}
+
+	if err1 != err {
+		t.Errorf("Expected error \"%v\"; got \"%v\"", err, err1)
 	}
 }
