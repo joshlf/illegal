@@ -5,14 +5,7 @@
 package illegal
 
 import (
-	"errors"
 	"reflect"
-)
-
-var (
-	ErrNotFunc       = errors.New("Argument was not a function")
-	ErrNotSlice      = errors.New("Argument was not a slice")
-	ErrWrongFuncType = errors.New("Argument function did not have the correct signature")
 )
 
 // Pre-computed type literals
@@ -33,14 +26,13 @@ var (
 // methods associated with the concrete types,
 // so they will register as equal.
 //
-// FuncEqual returns only one error, ErrNotFunc,
-// if one or both of the arguments are not actually
-// function pointers. Otherwise, the error is nil.
-func FuncEqual(f1, f2 interface{}) (bool, error) {
+// FuncEqual panics if either argument is not
+// a function.
+func FuncEqual(f1, f2 interface{}) bool {
 	if reflect.TypeOf(f1).Kind() != reflect.Func || reflect.TypeOf(f2).Kind() != reflect.Func {
-		return false, ErrNotFunc
+		panic("illegal: passed non-function value to FuncEqual")
 	}
-	return reflect.ValueOf(f1).Pointer() == reflect.ValueOf(f2).Pointer(), nil
+	return reflect.ValueOf(f1).Pointer() == reflect.ValueOf(f2).Pointer()
 }
 
 // Map takes slice, of type []T, and fn, of type
@@ -49,20 +41,19 @@ func FuncEqual(f1, f2 interface{}) (bool, error) {
 // of slice successively. The resulting slice
 // has type []S, and has the same length as slice.
 //
-// It is an error to pass a non-slice value as slice
-// (ErrNotSlice), or a non-function value as fn'
-// (ErrNotFunc). It is an error for the argument type
-// of fn to be anything but T, and it is an error for
-// fn to return anything but 1 value (ErrWrongFuncType).
-func Map(slice, fn interface{}) (interface{}, error) {
+// Map panics if slice is not actually a slice,
+// or if fn is not actually a function. Map panics
+// if the argument type of fn is anything but T,
+// or if fn does not return exactly 1 value.
+func Map(slice, fn interface{}) interface{} {
 	slc := reflect.ValueOf(slice)
 	if slc.Kind() != reflect.Slice {
-		return nil, ErrNotSlice
+		panic("illegal: passed non-slice value to Map")
 	}
 
 	f := reflect.ValueOf(fn)
 	if f.Kind() != reflect.Func {
-		return nil, ErrNotFunc
+		panic("illegal: passed non-function value to Map")
 	}
 
 	slcType := slc.Type()
@@ -71,7 +62,7 @@ func Map(slice, fn interface{}) (interface{}, error) {
 	// f must take a single parameter of the same type as
 	// the given slice, and return a single result
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != slcType.Elem() {
-		return nil, ErrWrongFuncType
+		panic("illegal: function type and slice type do not match in call to Map(slice []T, fn func(T)S) []S")
 	}
 
 	ret := reflect.MakeSlice(reflect.SliceOf(fType.Out(0)), slc.Len(), slc.Cap())
@@ -82,7 +73,7 @@ func Map(slice, fn interface{}) (interface{}, error) {
 		ret.Index(i).Set(f.Call(args)[0])
 	}
 
-	return ret.Interface(), nil
+	return ret.Interface()
 }
 
 // Map takes slice, of type []T, and fn, of type
@@ -92,20 +83,19 @@ func Map(slice, fn interface{}) (interface{}, error) {
 // has type []T, and has length less than or equal
 // to the length of slice.
 //
-// It is an error to pass a non-slice value as slice
-// (ErrNotSlice), or a non-function value as fn'
-// (ErrNotFunc). It is an error for the argument type
-// of fn to be anything but T, and it is an error for
-// fn to return anything but bool (ErrWrongFuncType).
-func Filter(slice, fn interface{}) (interface{}, error) {
+// Filter panics if slice is not actually a slice,
+// or if fn is not actually a function. Filter panics
+// if the argument type of fn is anything but T, or if
+// fn returns anything but bool.
+func Filter(slice, fn interface{}) interface{} {
 	slc := reflect.ValueOf(slice)
 	if slc.Kind() != reflect.Slice {
-		return nil, ErrNotSlice
+		panic("illegal: passed non-slice value to Filter")
 	}
 
 	f := reflect.ValueOf(fn)
 	if f.Kind() != reflect.Func {
-		return nil, ErrNotFunc
+		panic("illegal: passed non-function value to Filter")
 	}
 
 	slcType := slc.Type()
@@ -113,7 +103,7 @@ func Filter(slice, fn interface{}) (interface{}, error) {
 	fType := f.Type()
 
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.Out(0) != boolType {
-		return nil, ErrWrongFuncType
+		panic("illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T")
 	}
 
 	ret := reflect.MakeSlice(slcType, 0, 0)
@@ -126,5 +116,5 @@ func Filter(slice, fn interface{}) (interface{}, error) {
 		}
 	}
 
-	return ret.Interface(), nil
+	return ret.Interface()
 }
