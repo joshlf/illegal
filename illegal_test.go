@@ -106,11 +106,11 @@ func TestMap(t *testing.T) {
 	testMap([]int{1, 2, 3}, []bool{false, false, false}, func(i int) bool { return false }, nil, t)
 
 	// Map should panic
-	testMap([]int{}, nil, func(b bool) int { return 3 }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T)S) []S", t)
+	testMap([]int{}, nil, func(b bool) int { return 3 }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) S) []S", t)
 	testMap([]int{}, nil, 3, "illegal: passed non-function value to Map", t)
 	testMap(3, nil, func() {}, "illegal: passed non-slice value to Map", t)
-	testMap([]int{}, nil, func(i, j int) int { return i * j }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T)S) []S", t)
-	testMap([]int{}, nil, func(i int) (int, int) { return i, i }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T)S) []S", t)
+	testMap([]int{}, nil, func(i, j int) int { return i * j }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) S) []S", t)
+	testMap([]int{}, nil, func(i int) (int, int) { return i, i }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) S) []S", t)
 }
 
 func testMap(slc1, slc2, f interface{}, err interface{}, t *testing.T) {
@@ -135,11 +135,11 @@ func TestFilter(t *testing.T) {
 	testFilter([]int{1, 2, 3, 4}, []int{1, 2, 3, 4}, func(i int) bool { return true }, nil, t)
 
 	// Filter should panic
-	testFilter([]int{1, 2, 3, 4}, nil, func(b bool) bool { return false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T", t)
-	testFilter([]int{1, 2, 3, 4}, nil, func(i int) int { return i }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T", t)
+	testFilter([]int{1, 2, 3, 4}, nil, func(b bool) bool { return false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T) bool) []T", t)
+	testFilter([]int{1, 2, 3, 4}, nil, func(i int) int { return i }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T) bool) []T", t)
 	testFilter([]int{}, nil, 3, "illegal: passed non-function value to Filter", t)
-	testFilter([]int{}, nil, func(i, j int) bool { return false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T", t)
-	testFilter([]int{}, nil, func(i, j int) (bool, bool) { return false, false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T", t)
+	testFilter([]int{}, nil, func(i, j int) bool { return false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T) bool) []T", t)
+	testFilter([]int{}, nil, func(i, j int) (bool, bool) { return false, false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T) bool) []T", t)
 	testFilter(3, nil, func() {}, "illegal: passed non-slice value to Filter", t)
 }
 
@@ -156,10 +156,6 @@ func testFilter(slc1, slc2, f interface{}, err interface{}, t *testing.T) {
 	if !reflect.DeepEqual(slc2, slc3) {
 		t.Errorf("Expected result %v; got %v", slc2, slc3)
 	}
-
-	if err1 != err {
-		t.Errorf("Expected error \"%v\"; got \"%v\"", err, err1)
-	}
 }
 
 func TestFoldr(t *testing.T) {
@@ -170,22 +166,26 @@ func TestFoldr(t *testing.T) {
 	testFoldr([]int{}, "", func(i int, s string) string { return "foo" }, "", nil, t)
 
 	// Foldr should fail
-	testFoldr([]int{}, 0, 0, nil, ErrNotFunc, t)
-	testFoldr([]int{}, 0, func(i, j, k int) int { return 0 }, nil, ErrWrongFuncType, t)
-	testFoldr([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, ErrWrongFuncType, t)
-	testFoldr([]int{}, false, func(i, j int) bool { return false }, nil, ErrWrongFuncType, t)
-	testFoldr([]int{}, 0, func(i int, b bool) bool { return false }, nil, ErrWrongZeroType, t)
-	testFoldr([]int{}, 0, func(i, j int) bool { return false }, nil, ErrWrongFuncType, t)
+	testFoldr(3, 0, 0, nil, "illegal: passed non-slice value to Foldr", t)
+	testFoldr([]int{}, 0, 0, nil, "illegal: passed non-function value to Foldr", t)
+	testFoldr([]int{}, 0, func(i, j, k int) int { return 0 }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S", t)
+	testFoldr([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S", t)
+	testFoldr([]int{}, false, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S", t)
+	testFoldr([]int{}, 0, func(i int, b bool) bool { return false }, nil, "illegal: zero type and function return type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S", t)
+	testFoldr([]int{}, 0, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S", t)
 }
 
-func testFoldr(slc, z, f interface{}, res interface{}, err error, t *testing.T) {
-	res1, err1 := Foldr(slc, z, f)
+func testFoldr(slc, z, f interface{}, res interface{}, err interface{}, t *testing.T) {
+	defer func() {
+		r := recover()
+		if !reflect.DeepEqual(r, err) {
+			t.Errorf("Expected error %v; got %v", err, r)
+		}
+	}()
+
+	res1 := Foldr(slc, z, f)
 
 	if !reflect.DeepEqual(res, res1) {
 		t.Errorf("Expected result %v; got %v", res, res1)
-	}
-
-	if err1 != err {
-		t.Errorf("Expected error \"%v\"; got \"%v\"", err, err1)
 	}
 }

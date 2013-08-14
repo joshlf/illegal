@@ -8,13 +8,6 @@ import (
 	"reflect"
 )
 
-var (
-	ErrNotFunc       = errors.New("Argument was not a function")
-	ErrNotSlice      = errors.New("Argument was not a slice")
-	ErrWrongFuncType = errors.New("Argument function did not have the correct signature")
-	ErrWrongZeroType = errors.New("Zero argument type did not match function return type")
-)
-
 // Pre-computed type literals
 var (
 	boolType = reflect.TypeOf(bool(true))
@@ -69,7 +62,7 @@ func Map(slice, fn interface{}) interface{} {
 	// f must take a single parameter of the same type as
 	// the given slice, and return a single result
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != slcType.Elem() {
-		panic("illegal: function type and slice type do not match in call to Map(slice []T, fn func(T)S) []S")
+		panic("illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) S) []S")
 	}
 
 	ret := reflect.MakeSlice(reflect.SliceOf(fType.Out(0)), slc.Len(), slc.Cap())
@@ -110,7 +103,7 @@ func Filter(slice, fn interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T")
+		panic("illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T) bool) []T")
 	}
 
 	ret := reflect.MakeSlice(slcType, 0, 0)
@@ -126,15 +119,15 @@ func Filter(slice, fn interface{}) interface{} {
 	return ret.Interface()
 }
 
-func Foldr(slice, zero, fn interface{}) (interface{}, error) {
+func Foldr(slice, zero, fn interface{}) interface{} {
 	slc := reflect.ValueOf(slice)
 	if slc.Kind() != reflect.Slice {
-		return nil, ErrNotSlice
+		panic("illegal: passed non-slice value to Foldr")
 	}
 
 	f := reflect.ValueOf(fn)
 	if f.Kind() != reflect.Func {
-		return nil, ErrNotFunc
+		panic("illegal: passed non-function value to Foldr")
 	}
 
 	z := reflect.ValueOf(zero)
@@ -144,14 +137,14 @@ func Foldr(slice, zero, fn interface{}) (interface{}, error) {
 	fType := f.Type()
 
 	if fType.NumIn() != 2 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.In(1) != fType.Out(0) {
-		return nil, ErrWrongFuncType
+		panic("illegal: function type and slice type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S")
 	}
 
 	// It's possible to have a valid function
 	// (that is, func(A, B)B) and have the type
 	// of zero not be equal to B
 	if fType.Out(0) != z.Type() {
-		return nil, ErrWrongZeroType
+		panic("illegal: zero type and function return type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S")
 	}
 
 	args := make([]reflect.Value, 2)
@@ -161,5 +154,5 @@ func Foldr(slice, zero, fn interface{}) (interface{}, error) {
 		args[1] = f.Call(args)[0]
 	}
 
-	return args[1].Interface(), nil
+	return args[1].Interface()
 }
