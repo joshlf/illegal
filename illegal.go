@@ -156,3 +156,41 @@ func Foldr(slice, zero, fn interface{}) interface{} {
 
 	return args[1].Interface()
 }
+
+func Foldl(slice, zero, fn interface{}) interface{} {
+	slc := reflect.ValueOf(slice)
+	if slc.Kind() != reflect.Slice {
+		panic("illegal: passed non-slice value to Foldl")
+	}
+
+	f := reflect.ValueOf(fn)
+	if f.Kind() != reflect.Func {
+		panic("illegal: passed non-function value to Foldl")
+	}
+
+	z := reflect.ValueOf(zero)
+
+	slcType := slc.Type()
+	elemType := slcType.Elem()
+	fType := f.Type()
+
+	if fType.NumIn() != 2 || fType.NumOut() != 1 || fType.In(1) != elemType || fType.In(0) != fType.Out(0) {
+		panic("illegal: function type and slice type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S")
+	}
+
+	// It's possible to have a valid function
+	// (that is, func(B, A)B) and have the type
+	// of zero not be equal to B
+	if fType.Out(0) != z.Type() {
+		panic("illegal: zero type and function return type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S")
+	}
+
+	args := make([]reflect.Value, 2)
+	args[0] = z
+	for i := slc.Len() - 1; i > -1; i-- {
+		args[1] = slc.Index(i)
+		args[0] = f.Call(args)[0]
+	}
+
+	return args[0].Interface()
+}

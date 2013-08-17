@@ -189,3 +189,35 @@ func testFoldr(slc, z, f interface{}, res interface{}, err interface{}, t *testi
 		t.Errorf("Expected result %v; got %v", res, res1)
 	}
 }
+
+func TestFoldl(t *testing.T) {
+	// Foldr should succeed
+	testFoldl([]int{1, 2, 3}, 1, func(i, j int) int { return i + j }, 7, nil, t)
+	testFoldl([]int{3, 2, 1}, 6, func(i, j int) int { return i - j }, 0, nil, t)
+	testFoldl([]int{1, 2, 3}, "", func(s string, i int) string { return fmt.Sprintf("%d%s", i, s) }, "123", nil, t)
+	testFoldl([]int{}, "", func(s string, i int) string { return "foo" }, "", nil, t)
+
+	// Foldr should fail
+	testFoldl(3, 0, 0, nil, "illegal: passed non-slice value to Foldl", t)
+	testFoldl([]int{}, 0, 0, nil, "illegal: passed non-function value to Foldl", t)
+	testFoldl([]int{}, 0, func(i, j, k int) int { return 0 }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S", t)
+	testFoldl([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S", t)
+	testFoldl([]int{}, false, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S", t)
+	testFoldl([]int{}, 0, func(b bool, i int) bool { return false }, nil, "illegal: zero type and function return type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S", t)
+	testFoldl([]int{}, 0, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S", t)
+}
+
+func testFoldl(slc, z, f interface{}, res interface{}, err interface{}, t *testing.T) {
+	defer func() {
+		r := recover()
+		if !reflect.DeepEqual(r, err) {
+			t.Errorf("Expected error %v; got %v", err, r)
+		}
+	}()
+
+	res1 := Foldl(slc, z, f)
+
+	if !reflect.DeepEqual(res, res1) {
+		t.Errorf("Expected result %v; got %v", res, res1)
+	}
+}
