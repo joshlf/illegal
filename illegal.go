@@ -36,10 +36,10 @@ func FuncEqual(f1, f2 interface{}) bool {
 }
 
 // Map takes slice, of type []T, and fn, of type
-// func(T)S, and returns a slice whose contents
+// func(T) U, and returns a slice whose contents
 // are the result of applying fn to each element
 // of slice successively. The resulting slice
-// has type []S, and has the same length as slice.
+// has type []U, and has the same length as slice.
 //
 // Map panics if slice is not actually a slice,
 // or if fn is not actually a function. Map panics
@@ -62,7 +62,7 @@ func Map(slice, fn interface{}) interface{} {
 	// f must take a single parameter of the same type as
 	// the given slice, and return a single result
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != slcType.Elem() {
-		panic("illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) S) []S")
+		panic("illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) U) []U")
 	}
 
 	ret := reflect.MakeSlice(reflect.SliceOf(fType.Out(0)), slc.Len(), slc.Cap())
@@ -77,7 +77,7 @@ func Map(slice, fn interface{}) interface{} {
 }
 
 // Map takes slice, of type []T, and fn, of type
-// func(T)bool, and returns a slice whose contents
+// func(T) bool, and returns a slice whose contents
 // are those elements, elem1, elem2, ... elemn,
 // for which fn(elemi) == true. The resulting slice
 // has type []T, and has length less than or equal
@@ -137,14 +137,14 @@ func Foldr(slice, zero, fn interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 2 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.In(1) != fType.Out(0) {
-		panic("illegal: function type and slice type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S")
+		panic("illegal: function type and slice type do not match in call to Foldr(slice []T, zero U, fn func(T, U) U) U")
 	}
 
 	// It's possible to have a valid function
 	// (that is, func(A, B)B) and have the type
 	// of zero not be equal to B
 	if fType.Out(0) != z.Type() {
-		panic("illegal: zero type and function return type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S")
+		panic("illegal: zero type and function return type do not match in call to Foldr(slice []T, zero U, fn func(T, U) U) U")
 	}
 
 	args := make([]reflect.Value, 2)
@@ -175,14 +175,14 @@ func Foldl(slice, zero, fn interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 2 || fType.NumOut() != 1 || fType.In(1) != elemType || fType.In(0) != fType.Out(0) {
-		panic("illegal: function type and slice type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S")
+		panic("illegal: function type and slice type do not match in call to Foldl(slice []T, zero U, fn func(U, T) U) U")
 	}
 
 	// It's possible to have a valid function
 	// (that is, func(B, A)B) and have the type
 	// of zero not be equal to B
 	if fType.Out(0) != z.Type() {
-		panic("illegal: zero type and function return type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S")
+		panic("illegal: zero type and function return type do not match in call to Foldl(slice []T, zero U, fn func(U, T) U) U")
 	}
 
 	args := make([]reflect.Value, 2)

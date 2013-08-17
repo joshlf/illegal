@@ -106,11 +106,11 @@ func TestMap(t *testing.T) {
 	testMap([]int{1, 2, 3}, []bool{false, false, false}, func(i int) bool { return false }, nil, t)
 
 	// Map should panic
-	testMap([]int{}, nil, func(b bool) int { return 3 }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) S) []S", t)
+	testMap([]int{}, nil, func(b bool) int { return 3 }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) U) []U", t)
 	testMap([]int{}, nil, 3, "illegal: passed non-function value to Map", t)
 	testMap(3, nil, func() {}, "illegal: passed non-slice value to Map", t)
-	testMap([]int{}, nil, func(i, j int) int { return i * j }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) S) []S", t)
-	testMap([]int{}, nil, func(i int) (int, int) { return i, i }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) S) []S", t)
+	testMap([]int{}, nil, func(i, j int) int { return i * j }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) U) []U", t)
+	testMap([]int{}, nil, func(i int) (int, int) { return i, i }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) U) []U", t)
 }
 
 func testMap(slc1, slc2, f interface{}, err interface{}, t *testing.T) {
@@ -168,11 +168,11 @@ func TestFoldr(t *testing.T) {
 	// Foldr should fail
 	testFoldr(3, 0, 0, nil, "illegal: passed non-slice value to Foldr", t)
 	testFoldr([]int{}, 0, 0, nil, "illegal: passed non-function value to Foldr", t)
-	testFoldr([]int{}, 0, func(i, j, k int) int { return 0 }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S", t)
-	testFoldr([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S", t)
-	testFoldr([]int{}, false, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S", t)
-	testFoldr([]int{}, 0, func(i int, b bool) bool { return false }, nil, "illegal: zero type and function return type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S", t)
-	testFoldr([]int{}, 0, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero S, fn func(T, S) S) S", t)
+	testFoldr([]int{}, 0, func(i, j, k int) int { return 0 }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero U, fn func(T, U) U) U", t)
+	testFoldr([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero U, fn func(T, U) U) U", t)
+	testFoldr([]int{}, false, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero U, fn func(T, U) U) U", t)
+	testFoldr([]int{}, 0, func(i int, b bool) bool { return false }, nil, "illegal: zero type and function return type do not match in call to Foldr(slice []T, zero U, fn func(T, U) U) U", t)
+	testFoldr([]int{}, 0, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldr(slice []T, zero U, fn func(T, U) U) U", t)
 }
 
 func testFoldr(slc, z, f interface{}, res interface{}, err interface{}, t *testing.T) {
@@ -200,11 +200,11 @@ func TestFoldl(t *testing.T) {
 	// Foldr should fail
 	testFoldl(3, 0, 0, nil, "illegal: passed non-slice value to Foldl", t)
 	testFoldl([]int{}, 0, 0, nil, "illegal: passed non-function value to Foldl", t)
-	testFoldl([]int{}, 0, func(i, j, k int) int { return 0 }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S", t)
-	testFoldl([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S", t)
-	testFoldl([]int{}, false, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S", t)
-	testFoldl([]int{}, 0, func(b bool, i int) bool { return false }, nil, "illegal: zero type and function return type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S", t)
-	testFoldl([]int{}, 0, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero S, fn func(S, T) S) S", t)
+	testFoldl([]int{}, 0, func(i, j, k int) int { return 0 }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero U, fn func(U, T) U) U", t)
+	testFoldl([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero U, fn func(U, T) U) U", t)
+	testFoldl([]int{}, false, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero U, fn func(U, T) U) U", t)
+	testFoldl([]int{}, 0, func(b bool, i int) bool { return false }, nil, "illegal: zero type and function return type do not match in call to Foldl(slice []T, zero U, fn func(U, T) U) U", t)
+	testFoldl([]int{}, 0, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldl(slice []T, zero U, fn func(U, T) U) U", t)
 }
 
 func testFoldl(slc, z, f interface{}, res interface{}, err interface{}, t *testing.T) {
