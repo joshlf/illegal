@@ -36,10 +36,10 @@ func FuncEqual(f1, f2 interface{}) bool {
 }
 
 // Map takes slice, of type []T, and fn, of type
-// func(T)S, and returns a slice whose contents
+// func(T) U, and returns a slice whose contents
 // are the result of applying fn to each element
 // of slice successively. The resulting slice
-// has type []S, and has the same length as slice.
+// has type []U, and has the same length as slice.
 //
 // Map panics if slice is not actually a slice,
 // or if fn is not actually a function. Map panics
@@ -62,7 +62,7 @@ func Map(slice, fn interface{}) interface{} {
 	// f must take a single parameter of the same type as
 	// the given slice, and return a single result
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != slcType.Elem() {
-		panic("illegal: function type and slice type do not match in call to Map(slice []T, fn func(T)S) []S")
+		panic("illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) U) []U")
 	}
 
 	ret := reflect.MakeSlice(reflect.SliceOf(fType.Out(0)), slc.Len(), slc.Cap())
@@ -77,7 +77,7 @@ func Map(slice, fn interface{}) interface{} {
 }
 
 // Map takes slice, of type []T, and fn, of type
-// func(T)bool, and returns a slice whose contents
+// func(T) bool, and returns a slice whose contents
 // are those elements, elem1, elem2, ... elemn,
 // for which fn(elemi) == true. The resulting slice
 // has type []T, and has length less than or equal
@@ -103,7 +103,7 @@ func Filter(slice, fn interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T")
+		panic("illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T) bool) []T")
 	}
 
 	ret := reflect.MakeSlice(slcType, 0, 0)

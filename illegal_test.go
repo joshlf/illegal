@@ -105,11 +105,11 @@ func TestMap(t *testing.T) {
 	testMap([]int{1, 2, 3}, []bool{false, false, false}, func(i int) bool { return false }, nil, t)
 
 	// Map should panic
-	testMap([]int{}, nil, func(b bool) int { return 3 }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T)S) []S", t)
+	testMap([]int{}, nil, func(b bool) int { return 3 }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) U) []U", t)
 	testMap([]int{}, nil, 3, "illegal: passed non-function value to Map", t)
 	testMap(3, nil, func() {}, "illegal: passed non-slice value to Map", t)
-	testMap([]int{}, nil, func(i, j int) int { return i * j }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T)S) []S", t)
-	testMap([]int{}, nil, func(i int) (int, int) { return i, i }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T)S) []S", t)
+	testMap([]int{}, nil, func(i, j int) int { return i * j }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) U) []U", t)
+	testMap([]int{}, nil, func(i int) (int, int) { return i, i }, "illegal: function type and slice type do not match in call to Map(slice []T, fn func(T) U) []U", t)
 }
 
 func testMap(slc1, slc2, f interface{}, err interface{}, t *testing.T) {
@@ -134,11 +134,11 @@ func TestFilter(t *testing.T) {
 	testFilter([]int{1, 2, 3, 4}, []int{1, 2, 3, 4}, func(i int) bool { return true }, nil, t)
 
 	// Filter should panic
-	testFilter([]int{1, 2, 3, 4}, nil, func(b bool) bool { return false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T", t)
-	testFilter([]int{1, 2, 3, 4}, nil, func(i int) int { return i }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T", t)
+	testFilter([]int{1, 2, 3, 4}, nil, func(b bool) bool { return false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T) bool) []T", t)
+	testFilter([]int{1, 2, 3, 4}, nil, func(i int) int { return i }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T) bool) []T", t)
 	testFilter([]int{}, nil, 3, "illegal: passed non-function value to Filter", t)
-	testFilter([]int{}, nil, func(i, j int) bool { return false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T", t)
-	testFilter([]int{}, nil, func(i, j int) (bool, bool) { return false, false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T)bool) []T", t)
+	testFilter([]int{}, nil, func(i, j int) bool { return false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T) bool) []T", t)
+	testFilter([]int{}, nil, func(i, j int) (bool, bool) { return false, false }, "illegal: function type and slice type do not match in call to Filter(slice []T, fn func(T) bool) []T", t)
 	testFilter(3, nil, func() {}, "illegal: passed non-slice value to Filter", t)
 }
 
