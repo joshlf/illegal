@@ -45,12 +45,12 @@ func Identity(x interface{}) interface{} { return x }
 func Map(slc, pred interface{}) interface{} {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Map")
+		panic(mapSliceError)
 	}
 
 	f := reflect.ValueOf(pred)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Map")
+		panic(mapFunctionError)
 	}
 
 	slcType := slice.Type()
@@ -59,7 +59,7 @@ func Map(slc, pred interface{}) interface{} {
 	// f must take a single parameter of the same type as
 	// the given slice, and return a single result
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != slcType.Elem() {
-		panic("illegal: function type and slice type do not match in call to Map(slc []T, pred func(T) U) []U")
+		panic(mapTypeError)
 	}
 
 	ret := reflect.MakeSlice(reflect.SliceOf(fType.Out(0)), slice.Len(), slice.Cap())
@@ -84,12 +84,12 @@ func Map(slc, pred interface{}) interface{} {
 func Filter(slc, pred interface{}) interface{} {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Filter")
+		panic(filterSliceError)
 	}
 
 	f := reflect.ValueOf(pred)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Filter")
+		panic(filterFunctionError)
 	}
 
 	slcType := slice.Type()
@@ -97,7 +97,7 @@ func Filter(slc, pred interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to Filter(slc []T, pred func(T) bool) []T")
+		panic(filterTypeError)
 	}
 
 	ret := reflect.MakeSlice(slcType, 0, 0)
@@ -124,12 +124,12 @@ func Filter(slc, pred interface{}) interface{} {
 func Reject(slc, pred interface{}) interface{} {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Reject")
+		panic(rejectSliceError)
 	}
 
 	f := reflect.ValueOf(pred)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Reject")
+		panic(rejectFunctionError)
 	}
 
 	slcType := slice.Type()
@@ -137,7 +137,7 @@ func Reject(slc, pred interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to Reject(slc []T, pred func(T) bool) []T")
+		panic(rejectTypeError)
 	}
 
 	ret := reflect.MakeSlice(slcType, 0, 0)
@@ -153,7 +153,7 @@ func Reject(slc, pred interface{}) interface{} {
 	return ret.Interface()
 }
 
-//	func Foldr(slc []T, zero U, pred func(T, U) U) U
+//	func foldl(slc []T, zero U, pred func(T, U) U) U
 //
 // Foldr applies pred to each element of slc, using
 // the previous call's return value as its second
@@ -167,12 +167,12 @@ func Reject(slc, pred interface{}) interface{} {
 func Foldr(slc, zero, pred interface{}) interface{} {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Foldr")
+		panic(foldrSliceError)
 	}
 
 	f := reflect.ValueOf(pred)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Foldr")
+		panic(foldrFunctionError)
 	}
 
 	z := reflect.ValueOf(zero)
@@ -182,14 +182,14 @@ func Foldr(slc, zero, pred interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 2 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.In(1) != fType.Out(0) {
-		panic("illegal: function type and slice type do not match in call to Foldr(slc []T, zero U, pred func(T, U) U) U")
+		panic(foldrTypeError)
 	}
 
 	// It's possible to have a valid function
 	// (that is, func(A, B)B) and have the type
 	// of zero not be equal to B
 	if fType.Out(0) != z.Type() {
-		panic("illegal: zero type and function return type do not match in call to Foldr(slc []T, zero U, pred func(T, U) U) U")
+		panic(foldrZeroError)
 	}
 
 	args := make([]reflect.Value, 2)
@@ -216,12 +216,12 @@ func Foldr(slc, zero, pred interface{}) interface{} {
 func Foldl(slc, zero, pred interface{}) interface{} {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Foldl")
+		panic(foldlSliceError)
 	}
 
 	f := reflect.ValueOf(pred)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Foldl")
+		panic(foldlFunctionError)
 	}
 
 	z := reflect.ValueOf(zero)
@@ -231,14 +231,14 @@ func Foldl(slc, zero, pred interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 2 || fType.NumOut() != 1 || fType.In(1) != elemType || fType.In(0) != fType.Out(0) {
-		panic("illegal: function type and slice type do not match in call to Foldl(slc []T, zero U, pred func(U, T) U) U")
+		panic(foldlTypeError)
 	}
 
 	// It's possible to have a valid function
 	// (that is, func(B, A)B) and have the type
 	// of zero not be equal to B
 	if fType.Out(0) != z.Type() {
-		panic("illegal: zero type and function return type do not match in call to Foldl(slc []T, zero U, pred func(U, T) U) U")
+		panic(foldlZeroError)
 	}
 
 	args := make([]reflect.Value, 2)
@@ -267,12 +267,12 @@ func Foldl(slc, zero, pred interface{}) interface{} {
 func Find(slc, pred interface{}) interface{} {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Find")
+		panic(findSliceError)
 	}
 
 	f := reflect.ValueOf(pred)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Find")
+		panic(findFunctionError)
 	}
 
 	slcType := slice.Type()
@@ -280,7 +280,7 @@ func Find(slc, pred interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to Find(slc []T, pred func(T) bool) T")
+		panic(findTypeError)
 	}
 
 	args := make([]reflect.Value, 1)
@@ -303,12 +303,12 @@ func Find(slc, pred interface{}) interface{} {
 func FindIndex(slc, pred interface{}) int {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to FindIndex")
+		panic(findIndexSliceError)
 	}
 
 	f := reflect.ValueOf(pred)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to FindIndex")
+		panic(findIndexFunctionError)
 	}
 
 	slcType := slice.Type()
@@ -316,7 +316,7 @@ func FindIndex(slc, pred interface{}) int {
 	fType := f.Type()
 
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to FindIndex(slc []T, pred func(T) bool) int")
+		panic(findIndexTypeError)
 	}
 
 	args := make([]reflect.Value, 1)
@@ -338,12 +338,12 @@ func FindIndex(slc, pred interface{}) int {
 func Some(slc, pred interface{}) bool {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Some")
+		panic(someSliceError)
 	}
 
 	f := reflect.ValueOf(pred)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Some")
+		panic(someFunctionError)
 	}
 
 	slcType := slice.Type()
@@ -351,7 +351,7 @@ func Some(slc, pred interface{}) bool {
 	fType := f.Type()
 
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to Some(slc []T, pred func(T) bool) bool")
+		panic(someTypeError)
 	}
 
 	args := make([]reflect.Value, 1)
@@ -373,12 +373,12 @@ func Some(slc, pred interface{}) bool {
 func Every(slc, pred interface{}) bool {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Every")
+		panic(everySliceError)
 	}
 
 	f := reflect.ValueOf(pred)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Every")
+		panic(everyFunctionError)
 	}
 
 	slcType := slice.Type()
@@ -386,7 +386,7 @@ func Every(slc, pred interface{}) bool {
 	fType := f.Type()
 
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to Every(slc []T, pred func(T) bool) bool")
+		panic(everyTypeError)
 	}
 
 	args := make([]reflect.Value, 1)
@@ -408,12 +408,12 @@ func Every(slc, pred interface{}) bool {
 func Count(slc, pred interface{}) int {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Count")
+		panic(countSliceError)
 	}
 
 	f := reflect.ValueOf(pred)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Count")
+		panic(countFunctionError)
 	}
 
 	slcType := slice.Type()
@@ -421,7 +421,7 @@ func Count(slc, pred interface{}) int {
 	fType := f.Type()
 
 	if fType.NumIn() != 1 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to Count(slc []T, pred func(T) bool) int")
+		panic(countTypeError)
 	}
 
 	ret := 0
@@ -447,12 +447,12 @@ func Count(slc, pred interface{}) int {
 func Max(slc, less interface{}) interface{} {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Max")
+		panic(maxSliceError)
 	}
 
 	f := reflect.ValueOf(less)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Max")
+		panic(maxFunctionError)
 	}
 
 	slcType := slice.Type()
@@ -460,7 +460,7 @@ func Max(slc, less interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 2 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.In(1) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to Max(slc []T, less func(T, T) bool) T")
+		panic(maxTypeError)
 	}
 
 	if slice.Len() == 0 {
@@ -490,12 +490,12 @@ func Max(slc, less interface{}) interface{} {
 func Min(slc, less interface{}) interface{} {
 	slice := reflect.ValueOf(slc)
 	if slice.Kind() != reflect.Slice {
-		panic("illegal: passed non-slice value to Min")
+		panic(minSliceError)
 	}
 
 	f := reflect.ValueOf(less)
 	if f.Kind() != reflect.Func {
-		panic("illegal: passed non-function value to Min")
+		panic(minFunctionError)
 	}
 
 	slcType := slice.Type()
@@ -503,7 +503,7 @@ func Min(slc, less interface{}) interface{} {
 	fType := f.Type()
 
 	if fType.NumIn() != 2 || fType.NumOut() != 1 || fType.In(0) != elemType || fType.In(1) != elemType || fType.Out(0) != boolType {
-		panic("illegal: function type and slice type do not match in call to Min(slc []T, less func(T, T) bool) T")
+		panic(minTypeError)
 	}
 
 	if slice.Len() == 0 {
@@ -521,3 +521,87 @@ func Min(slc, less interface{}) interface{} {
 
 	return args[1].Interface()
 }
+
+var (
+	// The same basic types of errors are used
+	// over and over again, and must be checked
+	// against in testing code. Writing out the
+	// string literals every single time is tiresome,
+	// and has led to consistency issues. Making
+	// them variables creates a single point of
+	// truth, and allows the error string scheme
+	// to be edited /far/ more easily than if we
+	// were using string literals everywhere.
+	//
+	// The general form of errors is:
+	//     package.Function: error
+	// So, for example,
+	//     generics.Map: passed non-slice value
+	sliceError        = "passed non-slice value"
+	functionError     = "passed non-function value"
+	typeError         = "function type and slice type do not match"
+	zeroError         = "zero type and function return type do not match"
+	packageNamePrefix = "generics."
+
+	mapErrorPrefix   = packageNamePrefix + "Map: "
+	mapSliceError    = mapErrorPrefix + sliceError
+	mapFunctionError = mapErrorPrefix + functionError
+	mapTypeError     = mapErrorPrefix + typeError
+
+	filterErrorPrefix   = packageNamePrefix + "Filter: "
+	filterSliceError    = filterErrorPrefix + sliceError
+	filterFunctionError = filterErrorPrefix + functionError
+	filterTypeError     = filterErrorPrefix + typeError
+
+	rejectErrorPrefix   = packageNamePrefix + "Reject: "
+	rejectSliceError    = rejectErrorPrefix + sliceError
+	rejectFunctionError = rejectErrorPrefix + functionError
+	rejectTypeError     = rejectErrorPrefix + typeError
+
+	foldrErrorPrefix   = packageNamePrefix + "Foldr: "
+	foldrSliceError    = foldrErrorPrefix + sliceError
+	foldrFunctionError = foldrErrorPrefix + functionError
+	foldrTypeError     = foldrErrorPrefix + typeError
+	foldrZeroError     = foldrErrorPrefix + zeroError
+
+	foldlErrorPrefix   = packageNamePrefix + "Foldl: "
+	foldlSliceError    = foldlErrorPrefix + sliceError
+	foldlFunctionError = foldlErrorPrefix + functionError
+	foldlTypeError     = foldlErrorPrefix + typeError
+	foldlZeroError     = foldlErrorPrefix + zeroError
+
+	findErrorPrefix   = packageNamePrefix + "Find: "
+	findSliceError    = findErrorPrefix + sliceError
+	findFunctionError = findErrorPrefix + functionError
+	findTypeError     = findErrorPrefix + typeError
+
+	findIndexErrorPrefix   = packageNamePrefix + "FindIndex: "
+	findIndexSliceError    = findIndexErrorPrefix + sliceError
+	findIndexFunctionError = findIndexErrorPrefix + functionError
+	findIndexTypeError     = findIndexErrorPrefix + typeError
+
+	someErrorPrefix   = packageNamePrefix + "Some: "
+	someSliceError    = someErrorPrefix + sliceError
+	someFunctionError = someErrorPrefix + functionError
+	someTypeError     = someErrorPrefix + typeError
+
+	everyErrorPrefix   = packageNamePrefix + "Every: "
+	everySliceError    = everyErrorPrefix + sliceError
+	everyFunctionError = everyErrorPrefix + functionError
+	everyTypeError     = everyErrorPrefix + typeError
+
+	countErrorPrefix   = packageNamePrefix + "Count: "
+	countSliceError    = countErrorPrefix + sliceError
+	countFunctionError = countErrorPrefix + functionError
+	countTypeError     = countErrorPrefix + typeError
+
+	maxErrorPrefix   = packageNamePrefix + "Max: "
+	maxSliceError    = maxErrorPrefix + sliceError
+	maxFunctionError = maxErrorPrefix + functionError
+	maxTypeError     = maxErrorPrefix + typeError
+
+	minErrorPrefix   = packageNamePrefix + "Min: "
+	minSliceError    = minErrorPrefix + sliceError
+	minFunctionError = minErrorPrefix + functionError
+	minTypeError     = minErrorPrefix + typeError
+)

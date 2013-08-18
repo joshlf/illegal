@@ -33,11 +33,11 @@ func TestMap(t *testing.T) {
 	testMap([]int{1, 2, 3}, []bool{false, false, false}, func(i int) bool { return false }, nil, t)
 
 	// Map should panic
-	testMap([]int{}, nil, func(b bool) int { return 3 }, "illegal: function type and slice type do not match in call to Map(slc []T, pred func(T) U) []U", t)
-	testMap([]int{}, nil, 3, "illegal: passed non-function value to Map", t)
-	testMap(3, nil, func() {}, "illegal: passed non-slice value to Map", t)
-	testMap([]int{}, nil, func(i, j int) int { return i * j }, "illegal: function type and slice type do not match in call to Map(slc []T, pred func(T) U) []U", t)
-	testMap([]int{}, nil, func(i int) (int, int) { return i, i }, "illegal: function type and slice type do not match in call to Map(slc []T, pred func(T) U) []U", t)
+	testMap([]int{}, nil, func(b bool) int { return 3 }, mapTypeError, t)
+	testMap([]int{}, nil, 3, mapFunctionError, t)
+	testMap(3, nil, func() {}, mapSliceError, t)
+	testMap([]int{}, nil, func(i, j int) int { return i * j }, mapTypeError, t)
+	testMap([]int{}, nil, func(i int) (int, int) { return i, i }, mapTypeError, t)
 }
 
 func testMap(slc1, slc2, f interface{}, err interface{}, t *testing.T) {
@@ -62,12 +62,12 @@ func TestFilter(t *testing.T) {
 	testFilter([]int{1, 2, 3, 4}, []int{1, 2, 3, 4}, func(i int) bool { return true }, nil, t)
 
 	// Filter should panic
-	testFilter([]int{1, 2, 3, 4}, nil, func(b bool) bool { return false }, "illegal: function type and slice type do not match in call to Filter(slc []T, pred func(T) bool) []T", t)
-	testFilter([]int{1, 2, 3, 4}, nil, func(i int) int { return i }, "illegal: function type and slice type do not match in call to Filter(slc []T, pred func(T) bool) []T", t)
-	testFilter([]int{}, nil, 3, "illegal: passed non-function value to Filter", t)
-	testFilter([]int{}, nil, func(i, j int) bool { return false }, "illegal: function type and slice type do not match in call to Filter(slc []T, pred func(T) bool) []T", t)
-	testFilter([]int{}, nil, func(i, j int) (bool, bool) { return false, false }, "illegal: function type and slice type do not match in call to Filter(slc []T, pred func(T) bool) []T", t)
-	testFilter(3, nil, func() {}, "illegal: passed non-slice value to Filter", t)
+	testFilter([]int{1, 2, 3, 4}, nil, func(b bool) bool { return false }, filterTypeError, t)
+	testFilter([]int{1, 2, 3, 4}, nil, func(i int) int { return i }, filterTypeError, t)
+	testFilter([]int{}, nil, 3, filterFunctionError, t)
+	testFilter([]int{}, nil, func(i, j int) bool { return false }, filterTypeError, t)
+	testFilter([]int{}, nil, func(i, j int) (bool, bool) { return false, false }, filterTypeError, t)
+	testFilter(3, nil, func() {}, filterSliceError, t)
 }
 
 func testFilter(slc1, slc2, f interface{}, err interface{}, t *testing.T) {
@@ -92,12 +92,12 @@ func TestReject(t *testing.T) {
 	testReject([]int{1, 2, 3, 4}, []int{}, func(i int) bool { return true }, nil, t)
 
 	// Reject should panic
-	testReject([]int{1, 2, 3, 4}, nil, func(b bool) bool { return false }, "illegal: function type and slice type do not match in call to Reject(slc []T, pred func(T) bool) []T", t)
-	testReject([]int{1, 2, 3, 4}, nil, func(i int) int { return i }, "illegal: function type and slice type do not match in call to Reject(slc []T, pred func(T) bool) []T", t)
-	testReject([]int{}, nil, 3, "illegal: passed non-function value to Reject", t)
-	testReject([]int{}, nil, func(i, j int) bool { return false }, "illegal: function type and slice type do not match in call to Reject(slc []T, pred func(T) bool) []T", t)
-	testReject([]int{}, nil, func(i, j int) (bool, bool) { return false, false }, "illegal: function type and slice type do not match in call to Reject(slc []T, pred func(T) bool) []T", t)
-	testReject(3, nil, func() {}, "illegal: passed non-slice value to Reject", t)
+	testReject([]int{1, 2, 3, 4}, nil, func(b bool) bool { return false }, rejectTypeError, t)
+	testReject([]int{1, 2, 3, 4}, nil, func(i int) int { return i }, rejectTypeError, t)
+	testReject([]int{}, nil, 3, rejectFunctionError, t)
+	testReject([]int{}, nil, func(i, j int) bool { return false }, rejectTypeError, t)
+	testReject([]int{}, nil, func(i, j int) (bool, bool) { return false, false }, rejectTypeError, t)
+	testReject(3, nil, func() {}, rejectSliceError, t)
 }
 
 func testReject(slc1, slc2, f interface{}, err interface{}, t *testing.T) {
@@ -123,13 +123,13 @@ func TestFoldr(t *testing.T) {
 	testFoldr([]int{}, "", func(i int, s string) string { return "foo" }, "", nil, t)
 
 	// Foldr should fail
-	testFoldr(3, 0, 0, nil, "illegal: passed non-slice value to Foldr", t)
-	testFoldr([]int{}, 0, 0, nil, "illegal: passed non-function value to Foldr", t)
-	testFoldr([]int{}, 0, func(i, j, k int) int { return 0 }, nil, "illegal: function type and slice type do not match in call to Foldr(slc []T, zero U, pred func(T, U) U) U", t)
-	testFoldr([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, "illegal: function type and slice type do not match in call to Foldr(slc []T, zero U, pred func(T, U) U) U", t)
-	testFoldr([]int{}, false, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldr(slc []T, zero U, pred func(T, U) U) U", t)
-	testFoldr([]int{}, 0, func(i int, b bool) bool { return false }, nil, "illegal: zero type and function return type do not match in call to Foldr(slc []T, zero U, pred func(T, U) U) U", t)
-	testFoldr([]int{}, 0, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldr(slc []T, zero U, pred func(T, U) U) U", t)
+	testFoldr(3, 0, 0, nil, foldrSliceError, t)
+	testFoldr([]int{}, 0, 0, nil, foldrFunctionError, t)
+	testFoldr([]int{}, 0, func(i, j, k int) int { return 0 }, nil, foldrTypeError, t)
+	testFoldr([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, foldrTypeError, t)
+	testFoldr([]int{}, false, func(i, j int) bool { return false }, nil, foldrTypeError, t)
+	testFoldr([]int{}, 0, func(i int, b bool) bool { return false }, nil, foldrZeroError, t)
+	testFoldr([]int{}, 0, func(i, j int) bool { return false }, nil, foldrTypeError, t)
 }
 
 func testFoldr(slc, z, f interface{}, res interface{}, err interface{}, t *testing.T) {
@@ -155,13 +155,13 @@ func TestFoldl(t *testing.T) {
 	testFoldl([]int{}, "", func(s string, i int) string { return "foo" }, "", nil, t)
 
 	// Foldl should fail
-	testFoldl(3, 0, 0, nil, "illegal: passed non-slice value to Foldl", t)
-	testFoldl([]int{}, 0, 0, nil, "illegal: passed non-function value to Foldl", t)
-	testFoldl([]int{}, 0, func(i, j, k int) int { return 0 }, nil, "illegal: function type and slice type do not match in call to Foldl(slc []T, zero U, pred func(U, T) U) U", t)
-	testFoldl([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, "illegal: function type and slice type do not match in call to Foldl(slc []T, zero U, pred func(U, T) U) U", t)
-	testFoldl([]int{}, false, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldl(slc []T, zero U, pred func(U, T) U) U", t)
-	testFoldl([]int{}, 0, func(b bool, i int) bool { return false }, nil, "illegal: zero type and function return type do not match in call to Foldl(slc []T, zero U, pred func(U, T) U) U", t)
-	testFoldl([]int{}, 0, func(i, j int) bool { return false }, nil, "illegal: function type and slice type do not match in call to Foldl(slc []T, zero U, pred func(U, T) U) U", t)
+	testFoldl(3, 0, 0, nil, foldlSliceError, t)
+	testFoldl([]int{}, 0, 0, nil, foldlFunctionError, t)
+	testFoldl([]int{}, 0, func(i, j, k int) int { return 0 }, nil, foldlTypeError, t)
+	testFoldl([]int{}, 0, func(i, j int) (int, int) { return 0, 0 }, nil, foldlTypeError, t)
+	testFoldl([]int{}, false, func(i, j int) bool { return false }, nil, foldlTypeError, t)
+	testFoldl([]int{}, 0, func(b bool, i int) bool { return false }, nil, foldlZeroError, t)
+	testFoldl([]int{}, 0, func(i, j int) bool { return false }, nil, foldlTypeError, t)
 }
 
 func testFoldl(slc, z, f interface{}, res interface{}, err interface{}, t *testing.T) {
@@ -187,11 +187,11 @@ func TestFind(t *testing.T) {
 	testFind([]int{}, func(i int) bool { return true }, nil, nil, t)
 
 	// Find should fail
-	testFind(3, nil, nil, "illegal: passed non-slice value to Find", t)
-	testFind([]int{1, 2, 3}, 3, nil, "illegal: passed non-function value to Find", t)
-	testFind([]int{1, 2, 3}, func(b bool) bool { return b }, nil, "illegal: function type and slice type do not match in call to Find(slc []T, pred func(T) bool) T", t)
-	testFind([]int{1, 2, 3}, func(i int) int { return i }, nil, "illegal: function type and slice type do not match in call to Find(slc []T, pred func(T) bool) T", t)
-	testFind([]int{1, 2, 3}, func(i, j int) bool { return i == j }, nil, "illegal: function type and slice type do not match in call to Find(slc []T, pred func(T) bool) T", t)
+	testFind(3, nil, nil, findSliceError, t)
+	testFind([]int{1, 2, 3}, 3, nil, findFunctionError, t)
+	testFind([]int{1, 2, 3}, func(b bool) bool { return b }, nil, findTypeError, t)
+	testFind([]int{1, 2, 3}, func(i int) int { return i }, nil, findTypeError, t)
+	testFind([]int{1, 2, 3}, func(i, j int) bool { return i == j }, nil, findTypeError, t)
 }
 
 func testFind(slc, pred, target interface{}, err interface{}, t *testing.T) {
@@ -216,11 +216,11 @@ func TestFindIndex(t *testing.T) {
 	testFindIndex([]int{}, func(i int) bool { return true }, -1, nil, t)
 
 	// FindIndex should fail
-	testFindIndex(3, nil, -1, "illegal: passed non-slice value to FindIndex", t)
-	testFindIndex([]int{1, 2, 3}, 3, -1, "illegal: passed non-function value to FindIndex", t)
-	testFindIndex([]int{1, 2, 3}, func(b bool) bool { return b }, -1, "illegal: function type and slice type do not match in call to FindIndex(slc []T, pred func(T) bool) int", t)
-	testFindIndex([]int{1, 2, 3}, func(i int) int { return i }, -1, "illegal: function type and slice type do not match in call to FindIndex(slc []T, pred func(T) bool) int", t)
-	testFindIndex([]int{1, 2, 3}, func(i, j int) bool { return i == j }, -1, "illegal: function type and slice type do not match in call to FindIndex(slc []T, pred func(T) bool) int", t)
+	testFindIndex(3, nil, -1, findIndexSliceError, t)
+	testFindIndex([]int{1, 2, 3}, 3, -1, findIndexFunctionError, t)
+	testFindIndex([]int{1, 2, 3}, func(b bool) bool { return b }, -1, findIndexTypeError, t)
+	testFindIndex([]int{1, 2, 3}, func(i int) int { return i }, -1, findIndexTypeError, t)
+	testFindIndex([]int{1, 2, 3}, func(i, j int) bool { return i == j }, -1, findIndexTypeError, t)
 }
 
 func testFindIndex(slc, pred interface{}, target int, err interface{}, t *testing.T) {
@@ -245,11 +245,11 @@ func TestSome(t *testing.T) {
 	testSome([]int{}, func(i int) bool { return true }, false, nil, t)
 
 	// Some should fail
-	testSome(3, nil, false, "illegal: passed non-slice value to Some", t)
-	testSome([]int{1, 2, 3}, 3, false, "illegal: passed non-function value to Some", t)
-	testSome([]int{1, 2, 3}, func(b bool) bool { return b }, false, "illegal: function type and slice type do not match in call to Some(slc []T, pred func(T) bool) bool", t)
-	testSome([]int{1, 2, 3}, func(i int) int { return i }, false, "illegal: function type and slice type do not match in call to Some(slc []T, pred func(T) bool) bool", t)
-	testSome([]int{1, 2, 3}, func(i, j int) bool { return i == j }, false, "illegal: function type and slice type do not match in call to Some(slc []T, pred func(T) bool) bool", t)
+	testSome(3, nil, false, someSliceError, t)
+	testSome([]int{1, 2, 3}, 3, false, someFunctionError, t)
+	testSome([]int{1, 2, 3}, func(b bool) bool { return b }, false, someTypeError, t)
+	testSome([]int{1, 2, 3}, func(i int) int { return i }, false, someTypeError, t)
+	testSome([]int{1, 2, 3}, func(i, j int) bool { return i == j }, false, someTypeError, t)
 }
 
 func testSome(slc, pred interface{}, target bool, err interface{}, t *testing.T) {
@@ -274,14 +274,14 @@ func TestMax(t *testing.T) {
 	testMax([]int{}, func(i, j int) bool { return true }, nil, nil, t)
 
 	// Max should fail
-	testMax(3, nil, nil, "illegal: passed non-slice value to Max", t)
-	testMax([]int{}, 3, nil, "illegal: passed non-function value to Max", t)
-	testMax([]int{}, func(i, j bool) bool { return true }, nil, "illegal: function type and slice type do not match in call to Max(slc []T, less func(T, T) bool) T", t)
-	testMax([]int{}, func(i int, b bool) bool { return true }, nil, "illegal: function type and slice type do not match in call to Max(slc []T, less func(T, T) bool) T", t)
-	testMax([]int{}, func(b bool, j int) bool { return true }, nil, "illegal: function type and slice type do not match in call to Max(slc []T, less func(T, T) bool) T", t)
-	testMax([]int{}, func(i, j int) int { return 0 }, nil, "illegal: function type and slice type do not match in call to Max(slc []T, less func(T, T) bool) T", t)
-	testMax([]int{}, func(i, j, k int) bool { return true }, nil, "illegal: function type and slice type do not match in call to Max(slc []T, less func(T, T) bool) T", t)
-	testMax([]int{}, func(i, j int) (bool, bool) { return true, true }, nil, "illegal: function type and slice type do not match in call to Max(slc []T, less func(T, T) bool) T", t)
+	testMax(3, nil, nil, maxSliceError, t)
+	testMax([]int{}, 3, nil, maxFunctionError, t)
+	testMax([]int{}, func(i, j bool) bool { return true }, nil, maxTypeError, t)
+	testMax([]int{}, func(i int, b bool) bool { return true }, nil, maxTypeError, t)
+	testMax([]int{}, func(b bool, j int) bool { return true }, nil, maxTypeError, t)
+	testMax([]int{}, func(i, j int) int { return 0 }, nil, maxTypeError, t)
+	testMax([]int{}, func(i, j, k int) bool { return true }, nil, maxTypeError, t)
+	testMax([]int{}, func(i, j int) (bool, bool) { return true, true }, nil, maxTypeError, t)
 }
 
 func testMax(slc, greater, target interface{}, err interface{}, t *testing.T) {
@@ -307,14 +307,14 @@ func TestMin(t *testing.T) {
 	testMin([]int{1}, func(i, j int) bool { return true }, 1, nil, t)
 
 	// Max should fail
-	testMin(3, nil, nil, "illegal: passed non-slice value to Min", t)
-	testMin([]int{}, 3, nil, "illegal: passed non-function value to Min", t)
-	testMin([]int{}, func(i, j bool) bool { return true }, nil, "illegal: function type and slice type do not match in call to Min(slc []T, less func(T, T) bool) T", t)
-	testMin([]int{}, func(i int, b bool) bool { return true }, nil, "illegal: function type and slice type do not match in call to Min(slc []T, less func(T, T) bool) T", t)
-	testMin([]int{}, func(b bool, j int) bool { return true }, nil, "illegal: function type and slice type do not match in call to Min(slc []T, less func(T, T) bool) T", t)
-	testMin([]int{}, func(i, j int) int { return 0 }, nil, "illegal: function type and slice type do not match in call to Min(slc []T, less func(T, T) bool) T", t)
-	testMin([]int{}, func(i, j, k int) bool { return true }, nil, "illegal: function type and slice type do not match in call to Min(slc []T, less func(T, T) bool) T", t)
-	testMin([]int{}, func(i, j int) (bool, bool) { return true, true }, nil, "illegal: function type and slice type do not match in call to Min(slc []T, less func(T, T) bool) T", t)
+	testMin(3, nil, nil, minSliceError, t)
+	testMin([]int{}, 3, nil, minFunctionError, t)
+	testMin([]int{}, func(i, j bool) bool { return true }, nil, minTypeError, t)
+	testMin([]int{}, func(i int, b bool) bool { return true }, nil, minTypeError, t)
+	testMin([]int{}, func(b bool, j int) bool { return true }, nil, minTypeError, t)
+	testMin([]int{}, func(i, j int) int { return 0 }, nil, minTypeError, t)
+	testMin([]int{}, func(i, j, k int) bool { return true }, nil, minTypeError, t)
+	testMin([]int{}, func(i, j int) (bool, bool) { return true, true }, nil, minTypeError, t)
 }
 
 func testMin(slc, greater, target interface{}, err interface{}, t *testing.T) {
@@ -328,5 +328,66 @@ func testMin(slc, greater, target interface{}, err interface{}, t *testing.T) {
 	ret := Min(slc, greater)
 	if !reflect.DeepEqual(target, ret) {
 		t.Errorf("Expected return index %v; got %v", target, ret)
+	}
+}
+
+// Since we don't get to see the strings written
+// as literals anywhere, do this so we can double-check
+// that the error strings were composed properly.
+func TestVerifyErrorStrings(t *testing.T) {
+	toPrint := []string{
+		mapSliceError,
+		mapFunctionError,
+		mapTypeError,
+
+		filterSliceError,
+		filterFunctionError,
+		filterTypeError,
+
+		rejectSliceError,
+		rejectFunctionError,
+		rejectTypeError,
+
+		foldrSliceError,
+		foldrFunctionError,
+		foldrTypeError,
+		foldrZeroError,
+
+		foldlSliceError,
+		foldlFunctionError,
+		foldlTypeError,
+		foldlZeroError,
+
+		findSliceError,
+		findFunctionError,
+		findTypeError,
+
+		findIndexSliceError,
+		findIndexFunctionError,
+		findIndexTypeError,
+
+		someSliceError,
+		someFunctionError,
+		someTypeError,
+
+		everySliceError,
+		everyFunctionError,
+		everyTypeError,
+
+		countSliceError,
+		countFunctionError,
+		countTypeError,
+
+		maxSliceError,
+		maxFunctionError,
+		maxTypeError,
+
+		minSliceError,
+		minFunctionError,
+		minTypeError,
+	}
+	fmt.Println("Error strings:")
+	for _, s := range toPrint {
+		fmt.Println(s)
 	}
 }
