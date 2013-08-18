@@ -266,6 +266,68 @@ func testSome(slc, pred interface{}, target bool, err interface{}, t *testing.T)
 	}
 }
 
+func TestEvery(t *testing.T) {
+	// Some should succeed
+	testEvery([]int{1, 2, 3}, func(i int) bool { return i%2 == 0 }, false, nil, t)
+	testEvery([]int{1, 2, 3}, func(i int) bool { return i > 0 }, true, nil, t)
+	testEvery([]int{1, 2, 3}, func(i int) bool { return i > 4 }, false, nil, t)
+	testEvery([]bool{true, false, true}, func(b bool) bool { return b }, false, nil, t)
+	testEvery([]bool{true, true, true}, func(b bool) bool { return b }, true, nil, t)
+	testEvery([]int{}, func(i int) bool { return true }, true, nil, t)
+
+	// Some should fail
+	testEvery(3, nil, false, everySliceError, t)
+	testEvery([]int{1, 2, 3}, 3, false, everyFunctionError, t)
+	testEvery([]int{1, 2, 3}, func(b bool) bool { return b }, false, everyTypeError, t)
+	testEvery([]int{1, 2, 3}, func(i int) int { return i }, false, everyTypeError, t)
+	testEvery([]int{1, 2, 3}, func(i, j int) bool { return i == j }, false, everyTypeError, t)
+}
+
+func testEvery(slc, pred interface{}, target bool, err interface{}, t *testing.T) {
+	defer func() {
+		r := recover()
+		if !reflect.DeepEqual(r, err) {
+			t.Errorf("Expected error %v; got %v", err, r)
+		}
+	}()
+
+	ret := Every(slc, pred)
+	if !reflect.DeepEqual(target, ret) {
+		t.Errorf("Expected return index %v; got %v", target, ret)
+	}
+}
+
+func TestCount(t *testing.T) {
+	// Count should succeed
+	testCount([]int{1, 2, 3}, func(i int) bool { return i%2 == 0 }, 1, nil, t)
+	testCount([]int{1, 2, 3}, func(i int) bool { return i > 4 }, 0, nil, t)
+	testCount([]bool{true, false, true}, func(b bool) bool { return b }, 2, nil, t)
+	testCount([]bool{false, false, false}, func(b bool) bool { return b }, 0, nil, t)
+	testCount([]int{}, func(i int) bool { return true }, 0, nil, t)
+
+	// Count should fail
+	testCount(3, nil, 0, countSliceError, t)
+	testCount([]int{1, 2, 3}, 3, 0, countFunctionError, t)
+	testCount([]int{1, 2, 3}, func(b bool) bool { return b }, 0, countTypeError, t)
+	testCount([]int{1, 2, 3}, func(i int) int { return i }, 0, countTypeError, t)
+	testCount([]int{1, 2, 3}, func(i, j int) bool { return i == j }, 0, countTypeError, t)
+	testCount([]int{1, 2, 3}, func(i int) (bool, bool) { return true, true }, 0, countTypeError, t)
+}
+
+func testCount(slc, pred interface{}, target int, err interface{}, t *testing.T) {
+	defer func() {
+		r := recover()
+		if !reflect.DeepEqual(r, err) {
+			t.Errorf("Expected error %v; got %v", err, r)
+		}
+	}()
+
+	ret := Count(slc, pred)
+	if !reflect.DeepEqual(target, ret) {
+		t.Errorf("Expected return index %v; got %v", target, ret)
+	}
+}
+
 func TestMax(t *testing.T) {
 	// Max should succeed
 	testMax([]int{1, 2, 3}, func(i, j int) bool { return i < j }, 3, nil, t)
@@ -334,7 +396,10 @@ func testMin(slc, greater, target interface{}, err interface{}, t *testing.T) {
 // Since we don't get to see the strings written
 // as literals anywhere, do this so we can double-check
 // that the error strings were composed properly.
-func TestVerifyErrorStrings(t *testing.T) {
+//
+// Capitalize to make it actually run
+// (it's annoying to have it run every time).
+func testVerifyErrorStrings(t *testing.T) {
 	toPrint := []string{
 		mapSliceError,
 		mapFunctionError,
