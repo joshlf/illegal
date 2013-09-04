@@ -40,8 +40,8 @@ func TestFuncEqual(t *testing.T) {
 	testFuncEqual(f1, f3, false, nil, t)
 	testFuncEqual(f2, f3, false, nil, t)
 
-	testFuncEqual(f1, 3, false, "illegal: passed non-function value to FuncEqual", t)
-	testFuncEqual(3, f1, false, "illegal: passed non-function value to FuncEqual", t)
+	testFuncEqual(f1, 3, false, "illegal.FuncEqual: passed non-function value", t)
+	testFuncEqual(3, f1, false, "illegal.FuncEqual: passed non-function value", t)
 
 	f4 := func(i int) func() int { return func() int { return i } }
 
@@ -95,5 +95,47 @@ func testFuncEqual(f1, f2 interface{}, eq bool, err interface{}, t *testing.T) {
 		} else {
 			t.Errorf("Functions %v and %v are not equal; FuncEqual said they were", f1, f2)
 		}
+	}
+}
+
+type IntAlias int
+type IntAlias2 int
+type EmptyStructAlias struct{}
+
+var InterfaceReflectType = reflect.TypeOf([]interface{}{}).Elem()
+
+// Tests both ConvertSlice and ConvertSliceType
+func TestConvertSlice(t *testing.T) {
+	testConvertSlice([]int{1, 2, 3}, []int{1, 2, 3}, int(0), nil, t)
+	testConvertSlice([]int{1, 2, 3}, []int64{1, 2, 3}, int64(0), nil, t)
+	testConvertSlice([]int{1, 2, 3}, []float64{1.0, 2.0, 3.0}, float64(0), nil, t)
+	testConvertSlice([]int{1, 2, 3}, []IntAlias{1, 2, 3}, IntAlias(0), nil, t)
+	testConvertSlice([]struct{}{struct{}{}}, []EmptyStructAlias{EmptyStructAlias{}}, EmptyStructAlias{}, nil, t)
+	testConvertSlice([]IntAlias{1, 2, 3}, []IntAlias2{1, 2, 3}, IntAlias2(0), nil, t)
+	testConvertSlice([]int{1, 2, 3}, []interface{}{1, 2, 3}, InterfaceReflectType, nil, t)
+
+}
+
+// Tests both ConvertSlice and ConvertSliceType:
+// example can either be an example value,
+// in which case ConvertSlice will be called,
+// or a reflect.Type value, in which case
+// ConvertSliceType will be called.
+func testConvertSlice(input, target, example interface{}, err interface{}, t *testing.T) {
+	defer func() {
+		r := recover()
+		if !reflect.DeepEqual(r, err) {
+			t.Errorf("Expected error %v; got %v", err, r)
+		}
+	}()
+
+	var result interface{}
+	if typ, ok := example.(reflect.Type); ok {
+		result = ConvertSliceType(input, typ)
+	} else {
+		result = ConvertSlice(input, example)
+	}
+	if !reflect.DeepEqual(target, result) {
+		t.Errorf("Expected %s(%v); got %s(%v)", reflect.TypeOf(target).String(), target, reflect.TypeOf(result).String(), result)
 	}
 }
