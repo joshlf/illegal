@@ -1,4 +1,4 @@
-illegal
+illegal [![Build Status](https://travis-ci.org/joshlf13/illegal.svg?branch=master)](https://travis-ci.org/joshlf13/illegal)
 =======
 
 Support for operations which are disallowed by the Go compiler.
