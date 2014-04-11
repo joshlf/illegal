@@ -10,6 +10,11 @@ import (
 	"reflect"
 )
 
+// Convenience reflect.Type values
+var (
+	InterfaceType reflect.Type
+)
+
 // FuncEqual figures out if two function pointers
 // reference the same function. For two closures
 // created from the same original function, it will
@@ -134,4 +139,9 @@ func convertSliceType(slc interface{}, typ reflect.Type) interface{} {
 	}
 
 	return ret.Interface()
+}
+
+func init() {
+	// Credit to http://golang.org/src/pkg/net/rpc/server.go?s=4244:4436#L145 (build version go1.1.2)
+	InterfaceType = reflect.TypeOf((*interface{})(nil)).Elem()
 }

@@ -5,7 +5,9 @@
 package illegal
 
 import (
+	"fmt"
 	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -27,6 +29,27 @@ func (f FuncEqualTestType2) Test1() {}
 func (f FuncEqualTestType2) Test2() {}
 
 func TestFuncEqual(t *testing.T) {
+	/*
+		f1 := func() {}
+		testFuncEqual(f1, f1, fname(f1), fname(f1), true, nil, t)
+
+		f2 := func() bool { return false }
+		testFuncEqual(f2, f2, fname(f2), fname(f2), true, nil, t)
+
+		f3 := func(b bool) (bool, error) { return b, nil }
+		testFuncEqual(f3, f3, fname(f3), fname(f3), true, nil, t)
+
+		testFuncEqual(f1, f2, fname(f1), fname(f2), false, nil, t)
+		testFuncEqual(f1, f3, fname(f1), fname(f3), false, nil, t)
+		testFuncEqual(f2, f3, fname(f2), fname(f3), false, nil, t)
+
+		testFuncEqual(f1, 3, fname(f1), "", false, "illegal.FuncEqual: passed non-function value", t)
+		testFuncEqual(3, f1, "", fname(f1), false, "illegal.FuncEqual: passed non-function value", t)
+
+		f4 := func(i int) func() int { return func() int { return i } }
+
+		testFuncEqual(f4, f4, fname(f4), fname(f4), true, nil, t)
+	*/
 	f1 := func() {}
 	testFuncEqual(f1, f1, true, nil, t)
 
@@ -77,6 +100,10 @@ func TestFuncEqual(t *testing.T) {
 	i2 = t3
 
 	testFuncEqual(i1.Test1, i2.Test1, true, nil, t)
+
+	testFuncEqual(t1.Test1, t2.Test2, false, nil, t)
+
+	// testFuncEqual()
 }
 
 func testFuncEqual(f1, f2 interface{}, eq bool, err interface{}, t *testing.T) {
@@ -90,10 +117,18 @@ func testFuncEqual(f1, f2 interface{}, eq bool, err interface{}, t *testing.T) {
 	eq1 := FuncEqual(f1, f2)
 
 	if eq1 != eq {
+		n1, n2 := "", ""
+		v1, v2 := reflect.ValueOf(f1), reflect.ValueOf(f2)
+		if v1.Kind() == reflect.Func {
+			n1 = fname(v1.Pointer())
+		}
+		if v2.Kind() == reflect.Func {
+			n2 = fname(v2.Pointer())
+		}
 		if eq {
-			t.Errorf("Functions %v and %v are equal; FuncEqual said they weren't", f1, f2)
+			t.Errorf("Functions %v (%v) and %v (%v) are equal; FuncEqual said they weren't", f1, n1, f2, n2)
 		} else {
-			t.Errorf("Functions %v and %v are not equal; FuncEqual said they were", f1, f2)
+			t.Errorf("Functions %v (%v) and %v (%v) are not equal; FuncEqual said they were", f1, n1, f2, n2)
 		}
 	}
 }
@@ -103,6 +138,10 @@ type IntAlias2 int
 type EmptyStructAlias struct{}
 
 var InterfaceReflectType = reflect.TypeOf([]interface{}{}).Elem()
+
+type TypeWithMethod int
+
+func (t TypeWithMethod) Int() int { return int(t) }
 
 // Tests both ConvertSlice and ConvertSliceType
 func TestConvertSlice(t *testing.T) {
@@ -114,6 +153,17 @@ func TestConvertSlice(t *testing.T) {
 	testConvertSlice([]IntAlias{1, 2, 3}, []IntAlias2{1, 2, 3}, IntAlias2(0), nil, t)
 	testConvertSlice([]int{1, 2, 3}, []interface{}{1, 2, 3}, InterfaceReflectType, nil, t)
 
+	method1 := TypeWithMethod.Int
+	// method2 := (TypeWithMethod(3)).Int
+
+	result1 := ConvertSlice([](func(TypeWithMethod) int){method1}, method1).([](func(TypeWithMethod) int))[0]
+	fmt.Println(reflect.TypeOf(result1))
+	fmt.Println(result1)
+	fmt.Println(FuncEqual(method1, result1))
+	// result2 := ConvertSlice([](func() int){method2}, method2).([]func() int)[0]
+	// fmt.Println(reflect.TypeOf(result2))
+	// fmt.Println(result2)
+	// fmt.Println(FuncEqual(method2, result2))
 }
 
 // Tests both ConvertSlice and ConvertSliceType:
@@ -138,4 +188,21 @@ func testConvertSlice(input, target, example interface{}, err interface{}, t *te
 	if !reflect.DeepEqual(target, result) {
 		t.Errorf("Expected %s(%v); got %s(%v)", reflect.TypeOf(target).String(), target, reflect.TypeOf(result).String(), result)
 	}
+}
+
+func TestConvenienceVariables(t *testing.T) {
+	expect := "interface {}"
+	get := fmt.Sprint(InterfaceType)
+	if get != expect {
+		t.Errorf("Expected %s; got %s", expect, get)
+	}
+}
+
+func fname(p uintptr) string {
+	f := runtime.FuncForPC(p)
+	if f == nil {
+		return ""
+	}
+	return f.Name()
+
 }
